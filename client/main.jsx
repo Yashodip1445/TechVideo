@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
+import Practice from './Practice.jsx';
 
 const examples = [
   {prompt:'Which index holds the first element of a Java array?', choices:['0','1','The array length'], correct:0},
@@ -68,25 +69,30 @@ function Lesson({lesson}) {
 }
 
 function App() {
-  const [studio,setStudio] = useState(false);
+  const [page,setPage] = useState('Video library');
   const [lessons,setLessons] = useState(null);
   const [selected,setSelected] = useState('');
+  const [search,setSearch] = useState('');
   const [error,setError] = useState('');
-  async function refresh(id) {
+  async function refresh(id='') {
     setError('');
-    try {const all = await api('lessons'); setLessons(all); setSelected(id || all[0]?._id || '');}
+    try {setLessons(await api('lessons'));setSelected(id);}
     catch {setError('Could not load lessons. Check the API and MongoDB connection.');}
   }
   useEffect(()=>{refresh();},[]);
-  const lesson = lessons?.find(item=>item._id===selected);
-  return <><header><strong>TechVideo</strong><nav aria-label="Main navigation">
-    <button aria-pressed={!studio} onClick={()=>setStudio(false)}>Lessons</button>
-    <button aria-pressed={studio} onClick={()=>setStudio(true)}>Creator studio</button></nav></header><main>
-    {studio ? <Studio onPublish={id=>{setStudio(false);refresh(id);}}/> :
-      error ? <section role="alert"><p>{error}</p><button onClick={()=>refresh()}>Retry</button></section> :
-      lessons===null ? <p>Loading lessons…</p> : lesson ? <><label>Lesson library<select value={selected} onChange={e=>setSelected(e.target.value)}>
-        {lessons.map(item=><option key={item._id} value={item._id}>{item.title}</option>)}</select></label><Lesson key={selected} lesson={lesson}/></> :
-      <section><h1>Your lesson library</h1><p>Publish your first video and quiz to start learning.</p><button onClick={()=>setStudio(true)}>Create a lesson</button></section>}
-  </main></>;
+  const lesson=lessons?.find(item=>item._id===selected);
+  const filtered=lessons?.filter(item=>item.title.toLowerCase().includes(search.trim().toLowerCase()));
+  return <><header><strong><span className="mark" aria-hidden="true">▶</span> TechVideo</strong>
+    <nav aria-label="Main navigation">{['Video library','Aptitude practice','Creator studio'].map(label=>
+    <button key={label} aria-pressed={page===label} onClick={()=>{setPage(label);setSelected('')}}>{label}</button>)}</nav></header><main>
+    {page==='Aptitude practice'?<Practice/>:page==='Creator studio'?<Studio onPublish={id=>{setPage('Video library');refresh(id)}}/>:
+    error?<section role="alert"><p>{error}</p><button onClick={()=>refresh()}>Retry</button></section>:
+    lesson?<><button className="back" onClick={()=>setSelected('')}>← All videos</button><Lesson key={selected} lesson={lesson}/></>:
+    <><h1>Video library</h1><label className="search">Search lessons<input type="search" value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search by title"/></label>
+    {lessons===null?<p>Loading lessons…</p>:!lessons.length?<section><h2>Publish your first video</h2><p>Add a technical lesson and its quiz in Creator studio.</p><button onClick={()=>setPage('Creator studio')}>Create a lesson</button></section>:
+    !filtered.length?<p>No lessons match your search.</p>:
+    <div className="grid">{filtered.map(item=><button className="video tile" key={item._id} onClick={()=>setSelected(item._id)}>
+      <img src={'https://i.ytimg.com/vi/'+item.videoId+'/hqdefault.jpg'} alt="" loading="lazy"/>
+      <strong>{item.title}</strong><small>{item.questions.length} quiz questions</small></button>)}</div>}</>}</main></>;
 }
 createRoot(document.getElementById('root')).render(<App/>);

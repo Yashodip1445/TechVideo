@@ -1,3 +1,4 @@
+import {practice} from "./aptitude.js";
 import express from 'express';
 import mongoose from 'mongoose';
 
@@ -12,6 +13,7 @@ const Attempt = mongoose.model('Attempt', new mongoose.Schema({
 }, {timestamps:true}));
 const app = express();
 app.use(express.json({limit:'64kb'}));
+app.use('/api/practice',practice);
 app.get('/api/lessons', async (_, res) => res.json(await Lesson.find().select('-questions.correct').sort('-createdAt')));
 app.post('/api/lessons', async (req, res) => {
   if (req.get('X-Admin-Key') !== ADMIN_KEY) return res.status(403).json({error:'Check the admin key.'});

@@ -17,3 +17,7 @@ npm run dev
 Edit ADMIN_KEY in .env to a private value before starting. Open the local URL Vite prints (usually http://localhost:5173). Under Creator studio enter that key, a video title, and the 11-character YouTube video ID (the value after v= in a watch URL). Edit the three sample Java array questions as needed and publish. Open Lessons and take the quiz.
 
 The API binds to localhost:4000. Keep .env private. The app embeds videos that allow embedding. This first release covers publishing and assessments. AI hints, timed mock tests, and interviews are future modules.
+
+## Aptitude practice
+
+Open **Aptitude practice**, choose a subject and difficulty, then pick a topic. Each topic has 20 parameterised questions per level. Submit the full set to review your score, correct answers and explanations. Practice sessions are kept in the current page. The video library also supports thumbnail browsing and title search.
